@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gflzirc"
-version = "0.1.1"
+version = "0.1.2"
 description = "Core libraries for ZIRC project (GFL Protocol)"
 readme = "README.md"
 requires-python = ">=3.7"
