@@ -1,18 +1,23 @@
 import sys
 import time
 import json
-import shlex
 import threading
-from gflzirc import GFLClient, GFLCaptureProxy, set_windows_proxy
+from gflzirc import (
+    GFLClient, GFLProxy, set_windows_proxy,
+    SERVERS, STATIC_KEY, DEFAULT_SIGN,
+    API_MISSION_COMBINFO, API_MISSION_START, API_INDEX_GUIDE,
+    API_MISSION_END_TURN, API_MISSION_START_ENEMY_TURN,
+    API_MISSION_END_ENEMY_TURN, API_MISSION_START_TURN,
+    API_MISSION_ABORT, API_GUN_RETIRE, GUIDE_COURSE_11880
+)
 
 CONFIG = {
     "USER_UID": "_InputYourID_",
-    "SIGN_KEY": "1234567890abcdefghijklmnopqrstuv",
-    "STATIC_KEY": "yundoudou",
+    "SIGN_KEY": DEFAULT_SIGN,
     "MACRO_LOOPS": 200,
     "MISSIONS_PER_RETIRE": 50,
     "SQUAD_ID": 106360,
-    "BASE_URL": "http://gfcn-game.gw.merge.sunborngame.com/index.php/1000",
+    "BASE_URL": SERVERS["M4A1"],
     "PROXY_PORT": 8080
 }
 
@@ -23,14 +28,15 @@ proxy_instance = None
 stop_macro_flag = False
 stop_micro_flag = False
 
-def on_keys_captured(uid: str, sign: str):
-    CONFIG["USER_UID"] = uid
-    CONFIG["SIGN_KEY"] = sign
-    print(f"\n[+] SUCCESS! Keys Auto-Configured:")
-    print(f"    UID  : {CONFIG['USER_UID']}")
-    print(f"    SIGN : {CONFIG['SIGN_KEY']}")
-    print("\n[!] CRITICAL: Please wait for the game to fully load into the Commander Screen!")
-    print("[!] Then type '-r' to automatically stop proxy and begin farming.")
+def on_traffic(event_type: str, url: str, data: dict):
+    if event_type == "SYS_KEY_UPGRADE":
+        CONFIG["USER_UID"] = data.get("uid")
+        CONFIG["SIGN_KEY"] = data.get("sign")
+        print(f"\n[+] SUCCESS! Keys Auto-Configured:")
+        print(f"    UID  : {CONFIG['USER_UID']}")
+        print(f"    SIGN : {CONFIG['SIGN_KEY']}")
+        print("\n[!] CRITICAL: Please wait for the game to fully load into the Commander Screen!")
+        print("[!] Then type '-r' to automatically stop proxy and begin farming.")
 
 def check_step_error(resp: dict, step_name: str) -> bool:
     if "error_local" in resp:
@@ -57,9 +63,8 @@ def check_drop_result(response_data: dict) -> list:
 
 def farm_mission_11880(client: GFLClient, squad_id: int):
     mission_id = 11880
-    GUIDE_COURSE = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1,0,0,0,0,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,1,1,1,0,0,1,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 
-    if check_step_error(client.send_request("Mission/combinationInfo", {"mission_id": mission_id}), "combinationInfo"): return None
+    if check_step_error(client.send_request(API_MISSION_COMBINFO, {"mission_id": mission_id}), "combinationInfo"): return None
     
     start_payload = {
         "mission_id": mission_id, "spots": [],
@@ -67,18 +72,19 @@ def farm_mission_11880(client: GFLClient, squad_id: int):
         "sangvis_spots": [], "vehicle_spots": [], "ally_spots": [], "mission_ally_spots": [],
         "ally_id": int(time.time())
     }
-    if check_step_error(client.send_request("Mission/startMission", start_payload), "startMission"): return None
-    if check_step_error(client.send_request("Index/guide", {"guide": json.dumps({"course": GUIDE_COURSE}, separators=(',', ':'))}), "guide"): return None
+    
+    if check_step_error(client.send_request(API_MISSION_START, start_payload), "startMission"): return None
+    if check_step_error(client.send_request(API_INDEX_GUIDE, {"guide": json.dumps({"course": GUIDE_COURSE_11880}, separators=(',', ':'))}), "guide"): return None
     
     time.sleep(0.5)
-    if check_step_error(client.send_request("Mission/endTurn", {}), "endTurn"): return None
+    if check_step_error(client.send_request(API_MISSION_END_TURN, {}), "endTurn"): return None
     time.sleep(0.2)
-    if check_step_error(client.send_request("Mission/startEnemyTurn", {}), "startEnemyTurn"): return None
+    if check_step_error(client.send_request(API_MISSION_START_ENEMY_TURN, {}), "startEnemyTurn"): return None
     time.sleep(0.2)
-    if check_step_error(client.send_request("Mission/endEnemyTurn", {}), "endEnemyTurn"): return None
+    if check_step_error(client.send_request(API_MISSION_END_ENEMY_TURN, {}), "endEnemyTurn"): return None
     time.sleep(0.2)
     
-    final_resp = client.send_request("Mission/startTurn", {})
+    final_resp = client.send_request(API_MISSION_START_TURN, {})
     if check_step_error(final_resp, "startTurn"): return None
     
     return check_drop_result(final_resp)
@@ -86,14 +92,14 @@ def farm_mission_11880(client: GFLClient, squad_id: int):
 def retire_guns(client: GFLClient, gun_uids: list):
     if not gun_uids: return
     print(f"[*] Submitting {len(gun_uids)} T-Dolls for Auto-Retire...")
-    resp = client.send_request("Gun/retireGun", gun_uids)
+    resp = client.send_request(API_GUN_RETIRE, gun_uids)
     if resp.get("success"): print("[+] Auto-Retire Successful!")
     else: print(f"[-] Retire Failed: {resp}")
 
 def farm_worker():
     global stop_macro_flag, stop_micro_flag, worker_mode, current_worker_thread
     
-    if CONFIG["SIGN_KEY"] == "1234567890abcdefghijklmnopqrstuv":
+    if CONFIG["SIGN_KEY"] == DEFAULT_SIGN:
         print("[!] SIGN_KEY is default. Run Capture (-c) first!")
         worker_mode, current_worker_thread = None, None
         return
@@ -110,7 +116,7 @@ def farm_worker():
             if stop_micro_flag or stop_macro_flag: break
             dropped = farm_mission_11880(client, CONFIG["SQUAD_ID"])
             if dropped is None:
-                client.send_request("Mission/abortMission", {"mission_id": 11880})
+                client.send_request(API_MISSION_ABORT, {"mission_id": 11880})
                 time.sleep(3)
                 continue
             batch_guns.extend(dropped)
@@ -144,7 +150,7 @@ if __name__ == '__main__':
                 if proxy_instance:
                     print("[!] Proxy is already running!")
                     continue
-                proxy_instance = GFLCaptureProxy(CONFIG["PROXY_PORT"], CONFIG["STATIC_KEY"], on_keys_captured)
+                proxy_instance = GFLProxy(CONFIG["PROXY_PORT"], STATIC_KEY, on_traffic)
                 proxy_instance.start()
                 set_windows_proxy(True, f"127.0.0.1:{CONFIG['PROXY_PORT']}")
                 worker_mode = 'c'

@@ -2,11 +2,9 @@ import sys
 import time
 import os
 import json
-import threading
-from gflzirc import GFLMonitorProxy, set_windows_proxy
+from gflzirc import GFLProxy, set_windows_proxy, STATIC_KEY
 
 CONFIG = {
-    "STATIC_KEY": "yundoudou",
     "PROXY_PORT": 8080,
     "OUTPUT_DIR": "traffic_dumps"
 }
@@ -22,7 +20,6 @@ def save_json(content_obj, tag, url=""):
         
     timestamp = int(time.time())
     
-    # Extract short API endpoint for cleaner filenames
     endpoint = "unknown"
     if "index.php" in url:
         parts = url.split("index.php")
@@ -40,21 +37,20 @@ def save_json(content_obj, tag, url=""):
     except Exception as e:
         print(f"[!] Error saving file: {e}")
 
-def on_traffic_captured(direction: str, url: str, json_obj: dict):
-    if direction == "SYS":
+def on_traffic(event_type: str, url: str, data: dict):
+    if event_type == "SYS_KEY_UPGRADE":
         print(f"\n[!] SYSTEM UPGRADE: Sniffed dynamic user keys.")
-        print(f"    New UID  : {json_obj.get('uid')}")
-        print(f"    New SIGN : {json_obj.get('sign')}")
+        print(f"    New UID  : {data.get('uid')}")
+        print(f"    New SIGN : {data.get('sign')}")
         print("[*] Proxy crypto key has been updated automatically.\n")
-        return
         
-    if direction == "C2S":
+    elif event_type == "C2S":
         print(f"\n[--> C2S] Captured Request: {url}")
-        save_json(json_obj, "C2S", url)
+        save_json(data, "C2S", url)
         
-    elif direction == "S2C":
+    elif event_type == "S2C":
         print(f"[<-- S2C] Decrypted Server Response.")
-        save_json(json_obj, "S2C", url)
+        save_json(data, "S2C", url)
 
 def print_menu():
     print("\n================= MENU =================")
@@ -75,7 +71,7 @@ if __name__ == '__main__':
                 if proxy_instance:
                     print("[!] Monitor is already running!")
                     continue
-                proxy_instance = GFLMonitorProxy(CONFIG["PROXY_PORT"], CONFIG["STATIC_KEY"], on_traffic_captured)
+                proxy_instance = GFLProxy(CONFIG["PROXY_PORT"], STATIC_KEY, on_traffic)
                 proxy_instance.start()
                 set_windows_proxy(True, f"127.0.0.1:{CONFIG['PROXY_PORT']}")
                 print(f"[*] Network Monitor Started on {CONFIG['PROXY_PORT']}. Windows Proxy SET.")
