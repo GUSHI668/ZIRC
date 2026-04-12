@@ -9,7 +9,7 @@ from gflzirc import (
 CONFIG = {
     "USER_UID": "_InputYourID_",
     "SIGN_KEY": DEFAULT_SIGN,
-    "BASE_URL": SERVERS["RO635"],
+    "BASE_URL": SERVERS["M4A1"],
     "PROXY_PORT": 8080
 }
 
@@ -44,13 +44,24 @@ def check_step_error(resp: dict, step_name: str) -> bool:
 # Strategy Group Definitions
 # ==========================================
 
+# Note|TODO: Halloween 5800x
+
 def is_vehicle_mission(mission: str) -> bool:
-    # Vehicle missions
-    valid_missions = ["1:550501,2:550005", "1:550001,2:550505"]
-    return mission in valid_missions
+	# Vehicle missions e.g.
+		# "1:550501,2:550005",
+		# "1:550001,2:550505", 
+		# "1:550002,2:550506",
+		# "1:550003,2:550007",
+		# "1:550503,2:550007",
+		# "1:550504,2:550508"
+    # Loose match for vehicle missions: "1:55*,2:55*" (event not 2:55)
+    if not mission:
+        return False
+    return mission.startswith("1:55") and ",2:55" in mission
 
 def is_mountain_mission(mission: str) -> bool:
     # Mountain mission
+	# Note: 521021 is 150 points' mountain mission
     return mission.startswith("1:521018,2:")
 
 def check_strategy_1(spots: dict) -> bool:
@@ -124,7 +135,7 @@ def check_greyzone_conditions(resp: dict) -> bool:
     print(f"    [Map] 136(RM)={m136} | 127(RV)={m127} | 121(LM)={m121}")
     print(f"    [Map] 104(MV)={m104} | 84(BV)={m84} | 78(Opt)={m78}")
     
-    # Strategy Group Evaluation (OR Logic)
+    # Priority 2: Strategy Group Evaluation (OR Logic)
     if check_strategy_1(spots):
         print("    [+] Matched Strategy 1: Right Mountain + Vehicle")
         return True
