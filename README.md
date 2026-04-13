@@ -1,3 +1,5 @@
+Note: 暂时没时间补充各类文档。
+
 <p align="center">
   <img src="docs/pic/zirc.jpg" width="160" height="160" alt="LOGO">
 </p>

@@ -21,7 +21,7 @@ def save_json(content_obj, tag, url=""):
     timestamp = int(time.time())
     
     endpoint = "unknown"
-    if "index.php" in url:
+    if url and "index.php" in url:
         parts = url.split("index.php")
         if len(parts) > 1 and parts[1]:
             endpoint = parts[1].strip('/').replace('/', '_')
@@ -37,20 +37,56 @@ def save_json(content_obj, tag, url=""):
     except Exception as e:
         print(f"[!] Error saving file: {e}")
 
-def on_traffic(event_type: str, url: str, data: dict):
-    if event_type == "SYS_KEY_UPGRADE":
+def parse_payload(payload):
+    """
+    Robust payload parser to prevent json.dump crashes.
+    Always returns a dictionary.
+    """
+    if isinstance(payload, dict):
+        return payload
+        
+    elif isinstance(payload, str):
+        try:
+            return json.loads(payload)
+        except Exception:
+            return {"raw_string": payload}
+            
+    elif isinstance(payload, bytes):
+        try:
+            return json.loads(payload.decode('utf-8'))
+        except Exception:
+            return {"raw_hex": payload.hex()}
+            
+    else:
+        return {"raw_type": str(type(payload))}
+
+def on_traffic(event_type: str, url: str, data):
+    # Ensure event_type is upper case for matching
+    event_upper = str(event_type).upper()
+    
+    if event_upper == "SYS_KEY_UPGRADE":
         print(f"\n[!] SYSTEM UPGRADE: Sniffed dynamic user keys.")
-        print(f"    New UID  : {data.get('uid')}")
-        print(f"    New SIGN : {data.get('sign')}")
+        if isinstance(data, dict):
+            print(f"    New UID  : {data.get('uid')}")
+            print(f"    New SIGN : {data.get('sign')}")
         print("[*] Proxy crypto key has been updated automatically.\n")
         
-    elif event_type == "C2S":
+    elif event_upper == "C2S":
         print(f"\n[--> C2S] Captured Request: {url}")
-        save_json(data, "C2S", url)
+        json_obj = parse_payload(data)
+        save_json(json_obj, "C2S", url)
         
-    elif event_type == "S2C":
+    elif event_upper == "S2C":
         print(f"[<-- S2C] Decrypted Server Response.")
-        save_json(data, "S2C", url)
+        json_obj = parse_payload(data)
+        save_json(json_obj, "S2C", url)
+        
+    else:
+        # [CATCH-ALL] Catch any undocumented events from gflzirc
+        # (e.g. RAW_C2S, ERROR, UNPARSED) that failed normal decryption
+        print(f"\n[?] UNKNOWN/FALLBACK EVENT ({event_type}): {url}")
+        json_obj = parse_payload(data)
+        save_json(json_obj, f"UNHANDLED_{event_upper}", url)
 
 def print_menu():
     print("\n================= MENU =================")
