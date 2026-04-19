@@ -34,8 +34,12 @@ class GFLAgent:
         self.account_idx = int(os.environ.get("GFL_ACCOUNT_INDEX", "0"))
         self.mission_type = os.environ.get("GFL_MISSION_TYPE", "f2p")
         
-        config_raw = os.environ.get("GFL_CONFIG", "{}").strip()
+        is_epa = self.mission_type.startswith("epa")
+        config_env_key = "GFL_EPA_CONFIG" if is_epa else "GFL_CONFIG"
+        config_raw = os.environ.get(config_env_key, "{}").strip()
+        
         sign_raw = os.environ.get("GFL_SIGN_KEY", "").strip()
+        device_raw = os.environ.get("GFL_USER_DEVICE", "").strip()
 
         # 2. Parse Configs safely
         try:
@@ -46,21 +50,12 @@ class GFLAgent:
                 
             self.config = parsed_configs[self.account_idx]
         except Exception as e:
-            print(f"[-] FATAL: Failed to parse GFL_CONFIG JSON. Exception: {e}")
+            print(f"[-] FATAL: Failed to parse {config_env_key} JSON. Exception: {e}")
             sys.exit(1)
             
-        # 3. Parse Sign Keys safely
-        try:
-            parsed_signs = json.loads(sign_raw)
-            if not isinstance(parsed_signs, list):
-                parsed_signs = [str(parsed_signs)]
-        except Exception:
-            # Fallback for plain text signature string
-            parsed_signs = [sign_raw]
-            
-        # Extract matching sign key. If array is too short, reuse the last provided sign
-        raw_sign = parsed_signs[self.account_idx] if self.account_idx < len(parsed_signs) else parsed_signs[-1]
-        self.sign_key = raw_sign.strip().strip('"').strip("'")
+        # 3. Parse Array Secrets Safely (Sign Key & Device)
+        self.sign_key = self._extract_array_secret(sign_raw, self.account_idx)
+        self.user_device = self._extract_array_secret(device_raw, self.account_idx)
         
         uid = str(self.config.get("USER_UID", "")).strip()
         server_key = self.config.get("SERVER_KEY", "M4A1")
@@ -88,6 +83,12 @@ class GFLAgent:
             
         print(f"[*] SERVER_KEY   : {server_key}")
         print(f"[*] BASE_URL     : {self.base_url}")
+        
+        if is_epa:
+            teams = self.config.get("TEAMS", [])
+            print(f"[*] EPA Teams    : {len(teams)} Echelons Configured")
+            print(f"[*] USER_DEVICE  : {self.user_device[:8]}... (Length: {len(self.user_device)})")
+            
         print("=====================================================\n")
 
         if not self.sign_key or not uid or len(self.sign_key) < 12:
@@ -98,6 +99,17 @@ class GFLAgent:
             sys.exit(1)
             
         self.client = GFLClient(uid, self.sign_key, self.base_url)
+
+    def _extract_array_secret(self, raw_str: str, target_idx: int) -> str:
+        if not raw_str: return ""
+        try:
+            parsed = json.loads(raw_str)
+            if not isinstance(parsed, list):
+                parsed = [str(parsed)]
+        except Exception:
+            parsed = [raw_str]
+        val = parsed[target_idx] if target_idx < len(parsed) else parsed[-1]
+        return val.strip().strip('"').strip("'")
 
     def write_summary(self, status="Running"):
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -161,13 +173,9 @@ class GFLAgent:
 
     def check_drop_result(self, response_data) -> list:
         collected_guns = []
-        if not isinstance(response_data, dict):
-            return collected_guns
-            
+        if not isinstance(response_data, dict): return collected_guns
         win_result = response_data.get("mission_win_result", {})
-        if not win_result: 
-            return collected_guns
-            
+        if not win_result: return collected_guns
         reward_guns = win_result.get("reward_gun", [])
         if reward_guns:
             for gun in reward_guns:
@@ -178,16 +186,14 @@ class GFLAgent:
         return collected_guns
 
     def parse_random_node_drop(self, resp_data):
-        if not isinstance(resp_data, dict):
-            return
+        if not isinstance(resp_data, dict): return
         keys = list(resp_data.keys())
         try:
             target_idx = keys.index("building_defender_change") - 1
             if target_idx >= 0:
                 reward_key = keys[target_idx]
                 if reward_key not in ["trigger_para", "mission_win_step_control_ids", "spot_act_info"]:
-                    reward_val = resp_data[reward_key]
-                    print(f"[+] Random Node Drop Captured -> {reward_key} : {reward_val}")
+                    print(f"[+] Random Node Drop Captured -> {reward_key} : {resp_data[reward_key]}")
         except ValueError:
             pass
 
@@ -202,6 +208,9 @@ class GFLAgent:
 
     def run(self):
         print(f"=== GHA Auto-Farming Started: {self.mission_type.upper()} [Acct: {self.account_idx}] ===")
+        
+        # Run Mission Specific Pre-flight Check
+        self.mission_handler.prepare()
         
         macro_target = self.config.get("MACRO_LOOPS", 200)
         micro_target = self.config.get("MISSIONS_PER_RETIRE", 50)

@@ -9,6 +9,13 @@ class BaseMission:
         self.agent = agent
         self.config = agent.config
         
+    def prepare(self):
+        """
+        Pre-flight checks executed before entering the MACRO_LOOPS.
+        By default, does nothing. Can be overridden to run initial tests.
+        """
+        pass
+
     def get_mission_id(self) -> int:
         """
         Returns the mission ID to be used for aborting if things fail.

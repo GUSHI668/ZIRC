@@ -12,6 +12,8 @@ on:
           - f2p
           - f2p_pr
           - pick_coin
+          - epa_fifo
+          - epa_rr
 
 jobs:
   prepare:
@@ -23,11 +25,18 @@ jobs:
         id: set-matrix
         env:
           GFL_CONFIG_RAW: ${{ secrets.GFL_CONFIG }}
+          GFL_EPA_CONFIG_RAW: ${{ secrets.GFL_EPA_CONFIG }}
+          MISSION_TYPE: ${{ github.event.inputs.mission_type }}
         run: |
           python -c '
           import os, json
 
-          config_raw = os.environ.get("GFL_CONFIG_RAW", "").strip()
+          mission_type = os.environ.get("MISSION_TYPE", "")
+          if mission_type.startswith("epa"):
+              config_raw = os.environ.get("GFL_EPA_CONFIG_RAW", "").strip()
+          else:
+              config_raw = os.environ.get("GFL_CONFIG_RAW", "").strip()
+
           length = 1
 
           if config_raw:
@@ -83,7 +92,9 @@ jobs:
         env:
           # Directly passing Secrets to circumvent GHA Output limits
           GFL_CONFIG: ${{ secrets.GFL_CONFIG }}
+          GFL_EPA_CONFIG: ${{ secrets.GFL_EPA_CONFIG }}
           GFL_SIGN_KEY: ${{ secrets.GFL_SIGN_KEY }}
+          GFL_USER_DEVICE: ${{ secrets.GFL_USER_DEVICE }}
           GFL_MISSION_TYPE: ${{ github.event.inputs.mission_type }}
           GFL_ACCOUNT_INDEX: ${{ matrix.account_index }}
           PYTHONUNBUFFERED: "1"
