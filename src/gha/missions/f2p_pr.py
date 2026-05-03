@@ -70,33 +70,33 @@ class F2PPRMission(BaseMission):
 
         # 3. Turn 1 Actions
         if self.agent.check_step_error(self._move_ally(64318, 64307, "teamMove_1"), "teamMove1"): return None
-        time.sleep(0.2)
+        time.sleep(0.1)
         
         if self.agent.check_step_error(self._move_ally(64307, 64308, "teamMove_2"), "teamMove2"): return None
-        time.sleep(0.2)
+        time.sleep(0.1)
         
         if self.agent.check_step_error(
             self.agent.safe_request(API_MISSION_ALLY_MYSIDE_MOVE, {}, "allyMySideMove"), 
             "allyMySideMove"
         ): 
             return None
-        time.sleep(0.2)
+        time.sleep(0.1)
         
         if self.agent.check_step_error(self.agent.safe_request(API_MISSION_END_TURN, {}, "endTurn"), "endTurn"): return None
-        time.sleep(0.2)
+        time.sleep(0.1)
         
         if self.agent.check_step_error(self.agent.safe_request(API_MISSION_START_ENEMY_TURN, {}, "startEnemyTurn"), "startEnemyTurn"): return None
-        time.sleep(0.2)
+        time.sleep(0.1)
         
         if self.agent.check_step_error(self.agent.safe_request(API_MISSION_END_ENEMY_TURN, {}, "endEnemyTurn"), "endEnemyTurn"): return None
-        time.sleep(0.2)
+        time.sleep(0.1)
         
         if self.agent.check_step_error(self.agent.safe_request(API_MISSION_START_TURN, {}, "startTurn"), "startTurn"): return None
-        time.sleep(0.5)
+        time.sleep(0.2)
         
         # 4. Turn 2 Actions
         if self.agent.check_step_error(self._move_ally(64308, 64302, "teamMove_3"), "teamMove3"): return None
-        time.sleep(0.2)
+        time.sleep(0.1)
         
         # Final move triggers mission complete
         final_resp = self._move_ally(64302, 64319, "teamMove_Final")
