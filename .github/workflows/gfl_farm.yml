@@ -16,6 +16,7 @@ on:
           - epa_fifo
           - epa_rr
           - greyzone_halloween
+          - epa_134_resource
 
 jobs:
   prepare:
