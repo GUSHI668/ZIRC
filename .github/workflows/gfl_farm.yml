@@ -12,8 +12,10 @@ on:
           - f2p
           - f2p_pr
           - pick_coin
+          - pick_and_train
           - epa_fifo
           - epa_rr
+          - greyzone_halloween
 
 jobs:
   prepare:

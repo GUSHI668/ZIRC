@@ -1,6 +1,7 @@
 # Exclude Monitor's output log
 poc/*.json
 tools/dev/monitor/traffic_dumps/*
+src/demo/utils/common/traffic_dumps/*
 
 # IL2CPP data
 src/common/include/script.json
