@@ -1,6 +1,6 @@
 """
-13-4 双单人五战资源打捞任务
-适用于 EN 服，梯队1和梯队2均为单人编队
+13-4 Dual Single-Doll (5 Battles) Resource Farming Mission
+Applicable to EN server, echelon 1 and 2 must be single-doll formations.
 """
 import time
 from gflzirc import (
@@ -18,10 +18,10 @@ from gflzirc import (
 )
 from .base import BaseMission
 
-# 13-4 五战路线
+# 13-4 route (5 battles)
 ROUTE = [91264, 91265, 91266, 91268, 91271]
 
-# 13-4 战斗模板
+# 13-4 battle templates
 BATTLE_1000_BY_SPOT = {
     91266: {"10": 22549, "11": 22549, "12": 22549, "13": 22549, "15": 34199, "16": 0, "17": 192,
             "33": 11004, "40": 37, "18": 0, "19": 0, "20": 0, "21": 0, "22": 0, "23": 0,
@@ -49,18 +49,18 @@ class EPA134ResourceMission(BaseMission):
         self.route = list(ROUTE)
         self.user_device = self.agent.config.get("USER_DEVICE", "1145141919810")
         self.missions_per_retire = self.agent.config.get("EPA_PER_RETIRE", 8)
-        self.teams = []  # 梯队1和梯队2的枪娘列表，在prepare()中填充
+        self.teams = []  # will be filled in prepare()
 
     def prepare(self):
-        """拉取Index数据并校验梯队1、2均为单人编队"""
+        """Fetch Index data and validate that echelon 1 and 2 are single-doll."""
         client = self.agent.client
-        print("[*] 正在请求 Index/index …")
+        print("[*] Requesting Index/index ...")
         resp = client.send_request(API_INDEX_INDEX,
                                    {"time": int(time.time()), "furniture_data": False})
         if "error" in resp or "error_local" in resp:
-            raise RuntimeError("Index/index 请求失败，无法继续")
+            raise RuntimeError("Index/index request failed, cannot proceed")
 
-        # 解析所有梯队
+        # parse all echelons
         gun_list = resp.get("gun_with_user_info", [])
         team_map = {}
         for gun in gun_list:
@@ -68,7 +68,6 @@ class EPA134ResourceMission(BaseMission):
             if tid < 1 or tid > 14:
                 continue
             team_map.setdefault(tid, {"team_id": tid, "guns": []})
-            # 兼容两种枪娘ID字段
             gun_uid = gun.get("id") or gun.get("gun_with_user_id")
             team_map[tid]["guns"].append({
                 "id": gun_uid,
@@ -76,20 +75,19 @@ class EPA134ResourceMission(BaseMission):
                 "gun_id": gun.get("gun_id", 0),
             })
 
-        # 检查必须的梯队
+        # validate required echelons
         for tid in (self.main_team_id, self.support_team_id):
             if tid not in team_map or len(team_map[tid]["guns"]) != 1:
-                raise RuntimeError(f"梯队{tid} 必须为单人编队，当前不符合要求，请检查游戏内编队。")
+                raise RuntimeError(f"Echelon {tid} must be a single-doll formation. Please check your in-game setup.")
 
-        # 保存梯队信息
         self.teams = [
             {"team_id": self.main_team_id, "fairy_id": 0, "guns": team_map[self.main_team_id]["guns"]},
             {"team_id": self.support_team_id, "fairy_id": 0, "guns": team_map[self.support_team_id]["guns"]},
         ]
-        print("[+] 梯队1、2校验通过，均为单人编队。")
+        print("[+] Echelon 1 and 2 validation passed: both are single-doll formations.")
 
     def farm(self) -> list:
-        """执行一轮 Macro（多次战斗 + 拆解），返回本轮获得的枪娘UID列表"""
+        """Execute one Macro (multiple battles + retire), return list of obtained gun UIDs."""
         client = self.agent.client
         batch_gun_uids = []
         mvp_iter = self._get_mvp_gen(self.teams[0]["guns"])
@@ -97,32 +95,32 @@ class EPA134ResourceMission(BaseMission):
         for _ in range(self.missions_per_retire):
             dropped = self._run_mission(client, mvp_iter)
             if dropped is None:
-                print("[-] 本轮战斗失败，放弃关卡并稍后重试…")
+                print("[-] Mission failed this run, aborting and retrying ...")
                 client.send_request(API_MISSION_ABORT, {"mission_id": self.mission_id})
                 time.sleep(3)
                 continue
             batch_gun_uids.extend(dropped.get("guns", []))
             time.sleep(0.1)
 
-        # 拆解所有本次获得的枪娘
+        # retire all obtained guns
         self._retire_guns(client, batch_gun_uids)
         return batch_gun_uids
 
     def _run_mission(self, client, mvp_gen):
-        """单次 13-4 五战流程，返回 {'guns': [uid, ...]} 或 None"""
+        """Single 13-4 five-battle run, returns {'guns': [uid, ...]} or None."""
         current_spots_state = {}
 
         def update_seeds(resp):
             for s in resp.get("spot_act_info", []):
                 current_spots_state[str(s["spot_id"])] = int(s["seed"])
 
-        # 1. 获取战场信息
+        # 1. get battlefield info
         if self._check_step_error(client.send_request(API_MISSION_COMBINFO,
                                                        {"mission_id": self.mission_id}),
                                   "combInfo"):
             return None
 
-        # 2. 部署两个梯队
+        # 2. deploy both echelons
         start_spots = [
             {"spot_id": self.start_spot, "team_id": self.main_team_id},
             {"spot_id": self.support_start_spot, "team_id": self.support_team_id},
@@ -144,9 +142,9 @@ class EPA134ResourceMission(BaseMission):
         curr_spot = self.start_spot
         dropped_gun_uids = []
 
-        # 3. 沿着路线移动并战斗
+        # 3. move and battle along the route
         for step, next_spot in enumerate(self.route, 1):
-            # 3.1 移动
+            # 3.1 move
             move_resp = client.send_request(API_MISSION_TEAM_MOVE, {
                 "person_type": 1,
                 "person_id": self.main_team_id,
@@ -160,7 +158,7 @@ class EPA134ResourceMission(BaseMission):
             client.send_request(API_MISSION_COMBINFO, {"mission_id": self.mission_id})
             seed = current_spots_state.get(str(next_spot), 0)
 
-            # 3.2 战斗
+            # 3.2 battle
             mvp = next(mvp_gen)
             fairy_dict = {}
             battle_payload = {
@@ -190,13 +188,13 @@ class EPA134ResourceMission(BaseMission):
             if self._check_step_error(battle_resp, f"battleFinish {next_spot}"):
                 return None
 
-            # 收集战斗中掉落的枪娘
+            # collect drops during battle
             for gun in battle_resp.get("battle_get_gun", []):
                 dropped_gun_uids.append(int(gun["gun_with_user_id"]))
             curr_spot = next_spot
             time.sleep(0.05)
 
-        # 4. 结束回合并获取胜利奖励
+        # 4. end turn and get victory rewards
         end_turn_resp = client.send_request(API_MISSION_END_TURN, {})
         if self._check_step_error(end_turn_resp, "endTurn"):
             return None
@@ -216,37 +214,37 @@ class EPA134ResourceMission(BaseMission):
         return {"guns": dropped_gun_uids}
 
     def _retire_guns(self, client, gun_uids):
-        """拆解枪娘，并处理仓库满的情况"""
+        """Retire obtained guns and handle full inventory."""
         if not gun_uids:
             return
-        print(f"[*] 正在拆解 {len(gun_uids)} 名人形…")
+        print(f"[*] Retiring {len(gun_uids)} dolls ...")
         resp = client.send_request(API_GUN_RETIRE, gun_uids)
         if resp.get("success"):
-            print("[+] 拆解成功")
+            print("[+] Retirement successful")
         else:
-            print(f"[-] 拆解失败，服务器返回：{resp}")
-            # 如果因仓库满导致拆解失败，可以在 agent 层面统一处理停止逻辑
+            print(f"[-] Retirement failed, server response: {resp}")
+            # Full inventory handling can be managed at the agent level
 
     @staticmethod
     def _check_step_error(resp, step_name):
         if "error_local" in resp:
-            print(f"[-] {step_name} 本地错误: {resp['error_local']}")
+            print(f"[-] {step_name} local error: {resp['error_local']}")
             return True
         if "error" in resp:
-            print(f"[-] {step_name} 服务器错误: {resp['error']}")
+            print(f"[-] {step_name} server error: {resp['error']}")
             return True
         return False
 
     @staticmethod
     def _build_1002(guns):
-        """构造 1002 字段（战斗结算数据）"""
+        """Build the 1002 field (battle settlement data)."""
         if len(guns) == 1:
             return {str(guns[0]["id"]): {"47": 1}}
         return {str(g["id"]): {"47": 0} for g in guns}
 
     @staticmethod
     def _get_mvp_gen(guns):
-        """MVP 轮流分配生成器"""
+        """Rotating MVP generator."""
         idx = 0
         while True:
             yield guns[idx % len(guns)]["id"]

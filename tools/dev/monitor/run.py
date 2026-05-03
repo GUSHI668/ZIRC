@@ -66,7 +66,7 @@ def on_message(message, data):
                 print(f"[!] Raw Content: {content[:50]}...")
 
 def main():
-    process_name = "GrilsFrontLine.exe"
+    process_name = "GirlsFrontLine.exe"
     
     print(f"[*] Attaching to process: {process_name} ...")
     try:
