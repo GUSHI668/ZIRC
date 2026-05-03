@@ -7,7 +7,7 @@ import json
 from gflzirc import GFLProxy, set_windows_proxy, STATIC_KEY
 
 CONFIG = {
-    "PROXY_PORT": 8080,
+    "PROXY_PORT": 12335,
     "OUTPUT_DIR": "traffic_dumps"
 }
 

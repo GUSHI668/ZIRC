@@ -35,19 +35,19 @@ except ImportError:
     API_SANGVIS_GASHA = "3000/Sangvis_gasha"
 
 CONFIG = {
-# === Authentication & Connection ===
+    # === Authentication & Connection ===
     "USER_UID": "_InputYourID_",
     "SIGN_KEY": DEFAULT_SIGN,
     "SERVER_NAME": "SOP",
     "BASE_URL": SERVERS["SOP"],
     "PROXY_PORT": 12335,
 
-# === Farm Loop Settings ===
+    # === Farm Loop Settings ===
     "MACRO_LOOPS": 200,
     # 5个掉落（一关）*10次循环，拆一次（大概50-60个左右）
     "MISSIONS_PER_RETIRE": 8,
 
-# === Mission Specific Config ===
+    # === Mission Specific Config ===
     # EPA: EX1
     "MISSION_ID": 145,
     "START_SPOT": 97061,
@@ -62,9 +62,9 @@ CONFIG = {
     "SINGLE_GUN_MODE": False,
     "SINGLE_GUN_INDEX": 0,
     "MODE_SELECTED_EARLY": False,
-    "MODE_NAME": "single",   # single=打捞, team=练级
+    "MODE_NAME": "single",  # single=打捞, team=练级
     "TRAIN_TEAM_COUNT": 1,
-    "TRAIN_SCHEDULE_MODE": "full",   # full=当前梯队练到全满再切下一个, equal=均等练级轮转
+    "TRAIN_SCHEDULE_MODE": "full",  # full=当前梯队练到全满再切下一个, equal=均等练级轮转
     "CURRENT_TRAIN_TEAM_INDEX": 0,
     "STOP_ON_MAX_LEVEL": True,
     # single 打捞模式：当当前目标人形至少各掉落 1 个后自动停止。
@@ -94,7 +94,7 @@ CONFIG = {
     "FAIRY_ID": 159357,
     "FAIRY": None,
 
-      "GUNS": [
+    "GUNS": [
         {"id": 115599, "life": 444},
         {"id": 335577, "life": 1130},
         {"id": 225588, "life": 420},
@@ -421,6 +421,7 @@ EQUIP_ID_OVERRIDE = {
     "PK-A内红点瞄准镜": 497,
 }
 
+
 def resolve_equip_id_by_name(name: str):
     if name in EQUIP_ID_OVERRIDE:
         return int(EQUIP_ID_OVERRIDE[name])
@@ -519,9 +520,6 @@ TEAM_PROGRESS_STATE = {
     "current_active_started_at": None,
 }
 
-
-
-
 GUN_CATALOG_CACHE = None
 GUN_NAME_ALIAS = {
     "格洛克17": "Glock17",
@@ -606,6 +604,7 @@ GUN_ID_OVERRIDE = {
     "GepardM1": 201,
     "CheetahM1": 201,
 }
+
 
 def load_gun_catalog():
     global GUN_CATALOG_CACHE
@@ -701,6 +700,7 @@ def get_stage_options(difficulty: str, stage: str):
 def split_target_label(label: str):
     return [part.strip() for part in str(label).split("&") if part.strip()]
 
+
 def reset_auto_capture_state():
     AUTO_CAPTURE_STATE["team_id"] = None
     AUTO_CAPTURE_STATE["fairy_id"] = None
@@ -764,7 +764,6 @@ def get_active_training_team_indices():
     return [i for i in range(len(CAPTURED_TEAM_CONFIGS)) if i not in TRAIN_COMPLETED_TEAM_INDICES]
 
 
-
 def switch_to_next_available_training_team(reason: str = ""):
     global TEAM_SWITCH_PENDING, stop_macro_flag, stop_micro_flag
     if CONFIG.get("MODE_NAME") != "team":
@@ -777,7 +776,8 @@ def switch_to_next_available_training_team(reason: str = ""):
     if current_cfg and current_idx in TRAIN_COMPLETED_TEAM_INDICES and not current_cfg.get("completed", False):
         current_cfg["completed"] = True
         elapsed = get_team_runtime_seconds(current_cfg)
-        panel_safe_print(colorize("[梯队完成] 第 %d 队练级完成，用时：%s" % (current_idx + 1, format_duration(elapsed)), "success"))
+        panel_safe_print(
+            colorize("[梯队完成] 第 %d 队练级完成，用时：%s" % (current_idx + 1, format_duration(elapsed)), "success"))
 
     active_indices = get_active_training_team_indices()
     if not active_indices:
@@ -862,13 +862,13 @@ def build_team_configs_from_index(payload: dict):
                 "fairy_id": fairy_type_id,
                 "level": int(
                     fairy.get("fairy_lv",
-                    fairy.get("level",
-                    fairy.get("lv", 1))) or 1
+                              fairy.get("level",
+                                        fairy.get("lv", 1))) or 1
                 ),
                 "exp": int(
                     fairy.get("fairy_exp",
-                    fairy.get("exp",
-                    fairy.get("now_exp", 0))) or 0
+                              fairy.get("exp",
+                                        fairy.get("now_exp", 0))) or 0
                 ),
                 "team_id": team_id,
             }
@@ -976,7 +976,6 @@ def try_update_auto_capture_from_index_payload(payload: dict) -> bool:
 
     AUTO_CAPTURE_STATE["completed"] = True
     return True
-
 
 
 def has_usable_dynamic_keys() -> bool:
@@ -1136,6 +1135,7 @@ def stop_proxy_instance():
 def maybe_finish_auto_capture():
     return
 
+
 def print_main_menu():
     print("\n================= MENU =================")
     print(" -a : 先抓 UID/SIGN，再主动请求 Index/index 并解析梯队配置")
@@ -1145,7 +1145,6 @@ def print_main_menu():
     print(" -s : 仅停止代理")
     print(" -E : Exit program")
     print("========================================\n")
-
 
 
 def normalize_menu_input(cmd: str) -> str:
@@ -1267,7 +1266,6 @@ def print_ready_to_run_hint():
     print("[*] 选择已完成，请确认后开始运行。")
 
 
-
 def print_filter_protection_menu():
     print("\n=========== 过滤保护 ===========")
     print("  -protecton  : 开启（默认）")
@@ -1306,7 +1304,6 @@ def print_stop_on_max_menu():
     print("====================================\n")
 
 
-
 def print_target_drop_stop_menu():
     print("\n=========== 目标达成停机 ===========")
     print("请选择目标人形至少各掉落 1 个后的行为：")
@@ -1316,7 +1313,6 @@ def print_target_drop_stop_menu():
     print("说明：仅对打捞单人模式的人形目标生效。")
     print("提示：输入 -stopdrop / -keepdrop，回车默认 -keepdrop")
     print("====================================\n")
-
 
 
 def get_selected_protected_gun_ids():
@@ -1364,7 +1360,6 @@ def reset_run_stats():
     RUN_STATS["drop_marquee_last_key"] = ""
 
 
-
 def get_selected_target_pairs():
     label = CONFIG.get("SELECTED_TARGET_LABEL", "")
     pairs = []
@@ -1403,8 +1398,6 @@ def record_target_drop(item_id, drop_type="gun"):
             item["count"] += 1
 
 
-
-
 def has_each_target_dropped_once():
     if not RUN_STATS.get("target_counts"):
         return False
@@ -1425,8 +1418,6 @@ def should_stop_after_each_target_dropped():
     if RUN_STATS.get("target_type") != "gun":
         return False
     return has_each_target_dropped_once()
-
-
 
 
 def get_terminal_width(default=120):
@@ -1492,43 +1483,47 @@ def build_drop_marquee_segment(items, visible_width):
     return "".join(rendered)
 
 
-
 GUN_EXP_1_TO_100 = {
-    1:100,2:200,3:300,4:400,5:500,6:600,7:700,8:800,9:900,10:1000,
-    11:1100,12:1200,13:1300,14:1400,15:1500,16:1600,17:1700,18:1800,19:1900,20:2000,
-    21:2100,22:2200,23:2300,24:2400,25:2500,26:2600,27:2800,28:3100,29:3400,30:4200,
-    31:4600,32:5000,33:5400,34:5800,35:6300,36:6700,37:7200,38:7700,39:8200,40:8800,
-    41:9300,42:9900,43:10500,44:11100,45:11800,46:12500,47:13100,48:13900,49:14600,50:15400,
-    51:16100,52:16900,53:17800,54:18600,55:19500,56:20400,57:21300,58:22300,59:23300,60:24300,
-    61:25300,62:26300,63:27400,64:28500,65:29600,66:30800,67:32000,68:33200,69:34400,70:45100,
-    71:46800,72:48600,73:50400,74:52200,75:54000,76:55900,77:57900,78:59800,79:61800,80:63900,
-    81:66000,82:68100,83:70300,84:72600,85:74800,86:77100,87:79500,88:81900,89:84300,90:112600,
-    91:116100,92:119500,93:123100,94:126700,95:130400,96:134100,97:137900,98:141800,99:145700,
+    1: 100, 2: 200, 3: 300, 4: 400, 5: 500, 6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
+    11: 1100, 12: 1200, 13: 1300, 14: 1400, 15: 1500, 16: 1600, 17: 1700, 18: 1800, 19: 1900, 20: 2000,
+    21: 2100, 22: 2200, 23: 2300, 24: 2400, 25: 2500, 26: 2600, 27: 2800, 28: 3100, 29: 3400, 30: 4200,
+    31: 4600, 32: 5000, 33: 5400, 34: 5800, 35: 6300, 36: 6700, 37: 7200, 38: 7700, 39: 8200, 40: 8800,
+    41: 9300, 42: 9900, 43: 10500, 44: 11100, 45: 11800, 46: 12500, 47: 13100, 48: 13900, 49: 14600, 50: 15400,
+    51: 16100, 52: 16900, 53: 17800, 54: 18600, 55: 19500, 56: 20400, 57: 21300, 58: 22300, 59: 23300, 60: 24300,
+    61: 25300, 62: 26300, 63: 27400, 64: 28500, 65: 29600, 66: 30800, 67: 32000, 68: 33200, 69: 34400, 70: 45100,
+    71: 46800, 72: 48600, 73: 50400, 74: 52200, 75: 54000, 76: 55900, 77: 57900, 78: 59800, 79: 61800, 80: 63900,
+    81: 66000, 82: 68100, 83: 70300, 84: 72600, 85: 74800, 86: 77100, 87: 79500, 88: 81900, 89: 84300, 90: 112600,
+    91: 116100, 92: 119500, 93: 123100, 94: 126700, 95: 130400, 96: 134100, 97: 137900, 98: 141800, 99: 145700,
 }
 GUN_EXP_100_TO_120 = {
-    100:100000,101:120000,102:140000,103:160000,104:180000,
-    105:200000,106:220000,107:240000,108:280000,109:360000,
-    110:480000,111:640000,112:900000,113:1200000,114:1600000,
-    115:2200000,116:3000000,117:4000000,118:5000000,119:6000000,
+    100: 100000, 101: 120000, 102: 140000, 103: 160000, 104: 180000,
+    105: 200000, 106: 220000, 107: 240000, 108: 280000, 109: 360000,
+    110: 480000, 111: 640000, 112: 900000, 113: 1200000, 114: 1600000,
+    115: 2200000, 116: 3000000, 117: 4000000, 118: 5000000, 119: 6000000,
 }
 FAIRY_EXP_1_TO_100 = {
-    1:300,2:600,3:900,4:1200,5:1500,6:1800,7:2100,8:2400,9:2700,10:3000,
-    11:3300,12:3600,13:3900,14:4200,15:4500,16:4800,17:5100,18:5500,19:6000,20:6500,
-    21:7100,22:8000,23:9000,24:10000,25:11000,26:12200,27:13400,28:14700,29:16000,30:17500,
-    31:18900,32:20500,33:22200,34:23900,35:25700,36:27600,37:29500,38:31600,39:33700,40:35900,
-    41:38200,42:40500,43:43000,44:45500,45:48200,46:50900,47:53700,48:56600,49:59600,50:62700,
-    51:65900,52:69200,53:72600,54:76000,55:79600,56:83300,57:87000,58:90900,59:94900,60:99000,
-    61:103100,62:107400,63:111800,64:116300,65:120900,66:125600,67:130400,68:135300,69:140400,70:145500,
-    71:150800,72:156100,73:161600,74:167200,75:172900,76:178700,77:184700,78:190700,79:196900,80:203200,
-    81:209600,82:216100,83:222800,84:229600,85:236500,86:243500,87:250600,88:257900,89:265300,90:272800,
-    91:280400,92:288200,93:296100,94:304100,95:312300,96:320600,97:329000,98:337500,99:357000,
+    1: 300, 2: 600, 3: 900, 4: 1200, 5: 1500, 6: 1800, 7: 2100, 8: 2400, 9: 2700, 10: 3000,
+    11: 3300, 12: 3600, 13: 3900, 14: 4200, 15: 4500, 16: 4800, 17: 5100, 18: 5500, 19: 6000, 20: 6500,
+    21: 7100, 22: 8000, 23: 9000, 24: 10000, 25: 11000, 26: 12200, 27: 13400, 28: 14700, 29: 16000, 30: 17500,
+    31: 18900, 32: 20500, 33: 22200, 34: 23900, 35: 25700, 36: 27600, 37: 29500, 38: 31600, 39: 33700, 40: 35900,
+    41: 38200, 42: 40500, 43: 43000, 44: 45500, 45: 48200, 46: 50900, 47: 53700, 48: 56600, 49: 59600, 50: 62700,
+    51: 65900, 52: 69200, 53: 72600, 54: 76000, 55: 79600, 56: 83300, 57: 87000, 58: 90900, 59: 94900, 60: 99000,
+    61: 103100, 62: 107400, 63: 111800, 64: 116300, 65: 120900, 66: 125600, 67: 130400, 68: 135300, 69: 140400,
+    70: 145500,
+    71: 150800, 72: 156100, 73: 161600, 74: 167200, 75: 172900, 76: 178700, 77: 184700, 78: 190700, 79: 196900,
+    80: 203200,
+    81: 209600, 82: 216100, 83: 222800, 84: 229600, 85: 236500, 86: 243500, 87: 250600, 88: 257900, 89: 265300,
+    90: 272800,
+    91: 280400, 92: 288200, 93: 296100, 94: 304100, 95: 312300, 96: 320600, 97: 329000, 98: 337500, 99: 357000,
 }
+
 
 def sum_exp_range(table, start_level, end_level_exclusive):
     total = 0
     for lv in range(start_level, end_level_exclusive):
         total += int(table.get(lv, 0))
     return total
+
 
 def gun_total_exp_for_level(level, intra_exp=0):
     try:
@@ -1545,6 +1540,7 @@ def gun_total_exp_for_level(level, intra_exp=0):
     if level > 100:
         total += sum_exp_range(GUN_EXP_100_TO_120, 100, min(level, 120))
     return total + max(0, intra_exp)
+
 
 def gun_next_level_required_exp(level):
     try:
@@ -1595,6 +1591,7 @@ def fairy_total_exp_for_level(level, intra_exp=0):
         intra_exp = 0
     total = sum_exp_range(FAIRY_EXP_1_TO_100, 1, min(level, 100))
     return total + max(0, intra_exp)
+
 
 def fairy_next_level_required_exp(level):
     try:
@@ -1651,7 +1648,7 @@ def infer_gun_target_level(gun):
     if explicit:
         try:
             explicit = int(explicit)
-            if explicit in (100,110,115,120):
+            if explicit in (100, 110, 115, 120):
                 return explicit
         except Exception:
             pass
@@ -1663,8 +1660,10 @@ def infer_gun_target_level(gun):
         return 110
     return 100
 
+
 def infer_fairy_target_level(fairy):
     return 100
+
 
 def init_team_progress_runtime_fields(team_cfg):
     for gun in team_cfg.get("guns", []):
@@ -1687,17 +1686,20 @@ def init_team_progress_runtime_fields(team_cfg):
         fairy["base_total_exp"] = fairy_base_total_exp_from_index(level, exp)
         fairy["runtime_gained_exp"] = int(fairy.get("runtime_gained_exp", 0) or 0)
         fairy["target_total_exp"] = fairy_total_exp_for_level(fairy["target_level"], 0)
-        fairy["last_total_exp_seen"] = int(fairy.get("last_total_exp_seen", fairy["base_total_exp"]) or fairy["base_total_exp"])
+        fairy["last_total_exp_seen"] = int(
+            fairy.get("last_total_exp_seen", fairy["base_total_exp"]) or fairy["base_total_exp"])
     team_cfg.setdefault("runtime_seconds", 0.0)
     team_cfg.setdefault("completed", False)
     team_cfg.setdefault("maxed_member_uids", set())
     team_cfg.setdefault("warned_max_member_uids", set())
+
 
 def initialize_all_team_progress():
     for team_cfg in CAPTURED_TEAM_CONFIGS:
         init_team_progress_runtime_fields(team_cfg)
     if not CAPTURED_TEAM_CONFIGS:
         init_team_progress_runtime_fields({"guns": CONFIG.get("GUNS", []), "fairy": CONFIG.get("FAIRY")})
+
 
 def pause_current_team_runtime():
     team_id = TEAM_PROGRESS_STATE.get("current_active_team_id")
@@ -1710,10 +1712,12 @@ def pause_current_team_runtime():
     TEAM_PROGRESS_STATE["current_active_started_at"] = None
     TEAM_PROGRESS_STATE["current_active_team_id"] = None
 
+
 def activate_team_runtime(team_id):
     pause_current_team_runtime()
     TEAM_PROGRESS_STATE["current_active_team_id"] = team_id
     TEAM_PROGRESS_STATE["current_active_started_at"] = time.time()
+
 
 def get_team_config_by_team_id(team_id):
     for team_cfg in CAPTURED_TEAM_CONFIGS:
@@ -1723,6 +1727,7 @@ def get_team_config_by_team_id(team_id):
         return {"team_id": CONFIG.get("TEAM_ID"), "guns": CONFIG.get("GUNS", []), "fairy": CONFIG.get("FAIRY")}
     return None
 
+
 def get_team_runtime_seconds(team_cfg):
     total = float(team_cfg.get("runtime_seconds", 0.0))
     if TEAM_PROGRESS_STATE.get("current_active_team_id") == int(team_cfg.get("team_id", 0) or 0):
@@ -1730,6 +1735,7 @@ def get_team_runtime_seconds(team_cfg):
         if started:
             total += max(0.0, time.time() - started)
     return total
+
 
 def get_team_member_progress(team_cfg):
     guns = team_cfg.get("guns", [])
@@ -1763,14 +1769,17 @@ def get_team_member_progress(team_cfg):
     percent = (current_total / target_total * 100.0) if target_total > 0 else 0.0
     return current_total, target_total, gained_total, percent
 
+
 def get_team_fairy_progress(team_cfg):
     fairy = team_cfg.get("fairy")
     if not isinstance(fairy, dict):
         return 0, 0, 0.0
-    current_total = min(int(fairy.get("target_total_exp",0)), int(fairy.get("base_total_exp",0)) + int(fairy.get("runtime_gained_exp",0)))
-    target_total = int(fairy.get("target_total_exp",0))
+    current_total = min(int(fairy.get("target_total_exp", 0)),
+                        int(fairy.get("base_total_exp", 0)) + int(fairy.get("runtime_gained_exp", 0)))
+    target_total = int(fairy.get("target_total_exp", 0))
     percent = (current_total / target_total * 100.0) if target_total > 0 else 0.0
     return current_total, target_total, percent
+
 
 def estimate_team_eta_seconds(team_cfg):
     current_total, target_total, gained_total, _ = get_team_member_progress(team_cfg)
@@ -1783,8 +1792,10 @@ def estimate_team_eta_seconds(team_cfg):
         return None
     return remaining / exp_per_sec
 
+
 def format_percent(value):
     return "%.2f%%" % float(value)
+
 
 def format_clock_time(ts):
     if ts is None:
@@ -1793,6 +1804,7 @@ def format_clock_time(ts):
         return time.strftime("%H:%M:%S", time.localtime(ts))
     except Exception:
         return "-"
+
 
 def format_duration(seconds):
     seconds = int(max(0, seconds))
@@ -1804,6 +1816,7 @@ def format_duration(seconds):
     if m > 0:
         return f"{m}分{s}秒"
     return f"{s}秒"
+
 
 def enable_console_ansi():
     if os.name != "nt":
@@ -1819,7 +1832,6 @@ def enable_console_ansi():
         pass
 
 
-
 ANSI = {
     "reset": "\033[0m",
     "panel_border": "\033[96m",
@@ -1831,6 +1843,7 @@ ANSI = {
 }
 
 GUN_ID_NAME_CACHE = None
+
 
 def colorize(text, color_key=None):
     s = str(text)
@@ -1912,12 +1925,12 @@ def format_drop_name_for_display(name: str):
         return colorize(name, "target")
     return str(name)
 
+
 def _safe_panel_text(value):
     try:
         return str(value)
     except Exception:
         return ""
-
 
 
 def build_runtime_panel_lines():
@@ -1966,7 +1979,8 @@ def build_runtime_panel_lines():
 
     raw_lines = [
         colorize("============= EPA 运行状态 =============", "panel_border"),
-        "%s%s    %s%s" % (colorize("服务器：", "panel_label"), server_label, colorize("模式：", "panel_label"), mode_label),
+        "%s%s    %s%s" % (
+        colorize("服务器：", "panel_label"), server_label, colorize("模式：", "panel_label"), mode_label),
         "%s%s" % (colorize("关卡：", "panel_label"), stage_label),
         "%s%s" % (colorize("当前梯队：", "panel_label"), team_label),
         colorize(macro_text, "panel_label"),
@@ -1980,8 +1994,10 @@ def build_runtime_panel_lines():
         "%s%s" % (colorize("本轮掉落：", "panel_label"), drop_text),
         "%s%s" % (colorize("目标统计：", "panel_label"), get_target_drop_progress_text()),
         "%s%s" % (colorize("最近一轮经验：", "panel_label"), exp_text),
-        "%s%s (%s / %s)" % (colorize("人形进度：", "panel_label"), format_percent(member_pct), f"{member_cur:,}", f"{member_target:,}"),
-        "%s%s (%s / %s)" % (colorize("妖精进度：", "panel_label"), format_percent(fairy_pct), f"{fairy_cur:,}", f"{fairy_target:,}"),
+        "%s%s (%s / %s)" % (
+        colorize("人形进度：", "panel_label"), format_percent(member_pct), f"{member_cur:,}", f"{member_target:,}"),
+        "%s%s (%s / %s)" % (
+        colorize("妖精进度：", "panel_label"), format_percent(fairy_pct), f"{fairy_cur:,}", f"{fairy_target:,}"),
         "%s%s" % (colorize("本梯队已运行：", "panel_label"), format_duration(team_runtime)),
         "%s%s 后（%s）" % (colorize("预计完成：", "panel_label"), eta_text, eta_clock),
         "%s%s" % (colorize("总运行时间：", "panel_label"), format_duration(elapsed)),
@@ -2059,6 +2075,7 @@ SERVER_MENU_OPTIONS = {
     "-3": "M4A1",
     "-4": "M16",
     "-5": "AR-15",
+    "-6": "EN"
 }
 
 SERVER_KEY_ALIASES = {
@@ -2067,6 +2084,7 @@ SERVER_KEY_ALIASES = {
     "M4A1": ["M4A1"],
     "M16": ["M16"],
     "AR-15": ["AR-15", "AR15"],
+    "EN": ["EN"]
 }
 
 
@@ -2078,6 +2096,7 @@ def print_server_menu():
     print("  -3 : M4A1")
     print("  -4 : M16")
     print("  -5 : AR-15")
+    print("  -6 : EN")
     print("----------------------------------")
     print("提示：可输入编号或服务器名，直接回车默认 SOP")
     print("==================================\n")
@@ -2098,6 +2117,8 @@ def normalize_server_input(cmd: str):
         return "M16"
     if cmd_norm in ("5", "-5", "AR15", "AR-15"):
         return "AR-15"
+    if cmd_norm in ("6", "-6", "EN"):
+        return "EN"
     return None
 
 
@@ -2117,7 +2138,6 @@ def apply_server_selection(server_name: str) -> bool:
     print("[!] 当前 gflzirc 未找到服务器配置：%s" % server_name)
     print("[!] 可用服务器键：%s" % ", ".join(sorted(str(k) for k in SERVERS.keys())))
     return False
-
 
 
 def print_gun_mode_menu():
@@ -2273,13 +2293,13 @@ def handle_selection_input(cmd: str) -> bool:
         if cmd == "-y":
             MENU_STATE["awaiting_run_confirm"] = False
             print("[+] 配置已确认。")
-            
+
             print("[+] 当前模式：%s" % ("打捞单人模式" if CONFIG.get("SINGLE_GUN_MODE") else "练级五人模式"))
             if CONFIG.get("MODE_NAME") == "team":
                 schedule_label = "整队满级后切换" if CONFIG.get("TRAIN_SCHEDULE_MODE") == "full" else "均等练级轮转"
-                
+
                 print("[+] 练级调度模式：%s" % schedule_label)
-                
+
                 if CONFIG.get("SELECTED_DIFFICULTY") == "夜战":
                     print("[!] 提示：夜战暂时没有自动拆解功能，不建议去夜战关卡练级。")
             print("[+] 满级停机设置：%s" % ("开启" if CONFIG.get("STOP_ON_MAX_LEVEL") else "关闭"))
@@ -2379,7 +2399,8 @@ def handle_selection_input(cmd: str) -> bool:
                 CONFIG["START_SPOT"],
                 CONFIG["ROUTE"],
             ))
-            print("[+] 当前模式已在抓包前确定：%s" % ("打捞单人模式" if CONFIG.get("SINGLE_GUN_MODE") else "练级五人模式"))
+            print(
+                "[+] 当前模式已在抓包前确定：%s" % ("打捞单人模式" if CONFIG.get("SINGLE_GUN_MODE") else "练级五人模式"))
             if CONFIG.get("MODE_NAME") == "team" and CONFIG.get("SELECTED_DIFFICULTY") == "夜战":
                 print("[!] 提示：夜战当前暂未支持自动拆解功能，不建议用于自动练级。")
             print("[+] 当前战斗将自动调用已抓取的 TEAM_ID / FAIRY_ID / GUNS。")
@@ -2455,7 +2476,6 @@ def check_battle_equip_drop(resp_data: dict, spot_id: int):
             record_target_drop(equip_id, "equip")
             collected.append({"equip_id": equip_id, "equip_uid": equip_uid})
     return collected
-
 
 
 def extract_fairy_exp_gain_from_resp(resp_data: dict) -> int:
@@ -2561,7 +2581,6 @@ def apply_fairy_exp_gain_from_resp(resp_data: dict):
         return raw_val
 
     return 0
-
 
 
 def check_battle_exp(resp_data: dict, spot_id: int):
@@ -2797,7 +2816,9 @@ def farm_mission_epa(client: GFLClient, team_id: int, mvp_gen):
                 "guns": build_battle_guns(),
                 "user_rec": '{"seed":%d,"record":[]}' % seed,
 
-                "1000": {"10": 18473, "11": 18473, "12": 18473, "13": 18473, "15": 27550, "16": 0, "17": 98, "33": 10017, "40": 50, "18": 0, "19": 0, "20": 0, "21": 0, "22": 0, "23": 0, "24": 25975, "25": 0, "26": 25975, "27": 4, "34": 63, "35": 63, "41": 519, "42": 0, "43": 0, "44": 0},
+                "1000": {"10": 18473, "11": 18473, "12": 18473, "13": 18473, "15": 27550, "16": 0, "17": 98,
+                         "33": 10017, "40": 50, "18": 0, "19": 0, "20": 0, "21": 0, "22": 0, "23": 0, "24": 25975,
+                         "25": 0, "26": 25975, "27": 4, "34": 63, "35": 63, "41": 519, "42": 0, "43": 0, "44": 0},
                 "1001": {},
                 "1002": build_battle_1002(),
                 "1003": fairy_dict,
@@ -2963,7 +2984,8 @@ def farm_worker():
             panel_safe_print("=== MACRO %d / 直到手动停止或触发停止条件 ===" % macro)
 
         RUN_STATS["current_macro"] = macro
-        RUN_STATS["current_team_no"] = (CONFIG.get("CURRENT_TRAIN_TEAM_INDEX", 0) + 1) if CONFIG.get("MODE_NAME") == "team" else get_current_team_id()
+        RUN_STATS["current_team_no"] = (CONFIG.get("CURRENT_TRAIN_TEAM_INDEX", 0) + 1) if CONFIG.get(
+            "MODE_NAME") == "team" else get_current_team_id()
         RUN_STATS["macro_drop_names"] = []
         RUN_STATS["last_micro_exp_lines"] = []
         batch_guns = []
@@ -2995,7 +3017,9 @@ def farm_worker():
             if should_stop_after_each_target_dropped():
                 stop_macro_flag = True
                 stop_micro_flag = True
-                panel_safe_print(colorize("[目标达成] 当前目标人形已至少各掉落 1 个：%s，程序将安全停止。" % get_target_drop_progress_text(), "success"))
+                panel_safe_print(colorize(
+                    "[目标达成] 当前目标人形已至少各掉落 1 个：%s，程序将安全停止。" % get_target_drop_progress_text(),
+                    "success"))
                 break
 
             batch_guns.extend(dropped.get("guns", []))
@@ -3065,7 +3089,9 @@ if __name__ == '__main__':
 
             if cmd_prefix == '-a':
                 # 优先复用已抓到的动态密钥，直接请求 Index/index。
-                if not CONFIG.get("INDEX_FETCH_READY", False) and not proxy_instance and has_usable_dynamic_keys() and CONFIG.get("MODE_SELECTED_EARLY"):
+                if not CONFIG.get("INDEX_FETCH_READY",
+                                  False) and not proxy_instance and has_usable_dynamic_keys() and CONFIG.get(
+                        "MODE_SELECTED_EARLY"):
                     print("[*] 检测到已有可用动态密钥，优先复用当前 UID / SIGN 直接请求 Index/index。")
                     ok = request_index_and_prepare_configs()
                     if ok:
@@ -3102,7 +3128,8 @@ if __name__ == '__main__':
                         print("    -full  = 先把当前梯队一直练到全员满级，再切换到下一梯队。（默认）")
                         print("    -equal = 每个梯队先各练一轮，再轮流继续，直到所有梯队满级。")
                         print("[*] 提示：直接按回车将使用默认配置（-full），输入 -back 或 b 可返回编队模式选择。")
-                        schedule_cmd = normalize_menu_input(input("GFL-EPA(练级调度: -full/-equal, 默认-full)> ").strip())
+                        schedule_cmd = normalize_menu_input(
+                            input("GFL-EPA(练级调度: -full/-equal, 默认-full)> ").strip())
                         if schedule_cmd == "-back":
                             print_gun_mode_menu()
                             continue
@@ -3174,7 +3201,8 @@ if __name__ == '__main__':
 
             elif cmd_prefix == '-r':
                 if MENU_STATE["selection_unlocked"]:
-                    if CONFIG["SELECTED_DIFFICULTY"] is None or CONFIG["SELECTED_STAGE"] is None or CONFIG["SELECTED_TARGET_LABEL"] is None:
+                    if CONFIG["SELECTED_DIFFICULTY"] is None or CONFIG["SELECTED_STAGE"] is None or CONFIG[
+                        "SELECTED_TARGET_LABEL"] is None:
                         print("[!] 请先完成打捞菜单选择。")
                         continue
                     if MENU_STATE["awaiting_run_confirm"] or MENU_STATE["awaiting_stop_on_max"]:
@@ -3225,14 +3253,18 @@ if __name__ == '__main__':
                     elif MENU_STATE["stage"] is None:
                         print("[!] 无效输入，请输入对应关卡名称，例如：A-10，也可输入 a10，或输入 -back / b 返回难度菜单")
                     elif MENU_STATE["awaiting_filter_protection"]:
-                        print("[!] 无效输入，请输入 -protecton / -protectoff，或 on / off，或输入 -back / b 返回上一级菜单")
+                        print(
+                            "[!] 无效输入，请输入 -protecton / -protectoff，或 on / off，或输入 -back / b 返回上一级菜单")
                     elif MENU_STATE["awaiting_stop_on_max"]:
                         print("[!] 无效输入，请输入 -stopmax / -keepmax，或 sm / km，或输入 -back / b 返回上一级菜单")
                     elif MENU_STATE["awaiting_run_confirm"]:
                         print("[!] 无效输入，请输入 -y 确认运行，或输入 -back 返回上一级菜单")
-                    elif MENU_STATE["stage"] is not None and get_stage_data(MENU_STATE["difficulty"], MENU_STATE["stage"]):
+                    elif MENU_STATE["stage"] is not None and get_stage_data(MENU_STATE["difficulty"],
+                                                                            MENU_STATE["stage"]):
                         opt_keys = list(get_stage_options(MENU_STATE["difficulty"], MENU_STATE["stage"]).keys())
-                        print("[!] 无效输入，请输入 %s，也可直接输入数字 1/2/3...，或输入 -back / b 返回上一级菜单" % " / ".join(opt_keys))
+                        print(
+                            "[!] 无效输入，请输入 %s，也可直接输入数字 1/2/3...，或输入 -back / b 返回上一级菜单" % " / ".join(
+                                opt_keys))
                     else:
                         print("[!] 当前菜单暂未实现。")
                 else:
