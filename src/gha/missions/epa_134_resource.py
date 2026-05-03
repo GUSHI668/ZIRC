@@ -64,15 +64,22 @@ class EPA134ResourceMission(BaseMission):
         gun_list = resp.get("gun_with_user_info", [])
         team_map = {}
         for gun in gun_list:
-            tid = gun.get("team_id", 0)
+            try:
+                tid = int(gun.get("team_id", 0))
+            except (ValueError, TypeError):
+                continue
             if tid < 1 or tid > 14:
                 continue
             team_map.setdefault(tid, {"team_id": tid, "guns": []})
             gun_uid = gun.get("id") or gun.get("gun_with_user_id")
+            try:
+                gun_uid = int(gun_uid)
+            except (ValueError, TypeError):
+                continue
             team_map[tid]["guns"].append({
                 "id": gun_uid,
-                "life": gun.get("life", 100),
-                "gun_id": gun.get("gun_id", 0),
+                "life": int(gun.get("life", 100)),
+                "gun_id": int(gun.get("gun_id", 0)),
             })
 
         # validate required echelons
