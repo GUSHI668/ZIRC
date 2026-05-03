@@ -2,9 +2,9 @@
 
 // Addresses from your list
 // "Signature": "System_Byte_array* AC_AuthCode__DecodeWithGzip (System_String_o* source, System_String_o* key, const MethodInfo* method);",
-var addr_DecodeWithGzip = 28342768;
+var addr_DecodeWithGzip = 59474656;
 // "Signature": "System_String_o* AC_AuthCode__Encode (System_String_o* source, System_String_o* key, const MethodInfo* method);",
-var addr_Encode = 28343008;         // AC.AuthCode$$Encode
+var addr_Encode = 59474896;         // AC.AuthCode$$Encode
 
 // Helper: Read C# Byte Array (System.Byte[])
 function getCSharpByteArray(ptr) {

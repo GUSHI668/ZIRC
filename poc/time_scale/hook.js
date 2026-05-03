@@ -20,7 +20,7 @@ function initEngineSpeedhack() {
 
     // Addresses from script.json
     // "Signature": "void UnityEngine_Time__set_timeScale (float value, const MethodInfo* method);",
-    var addr_SetTimeScale = gameAssembly.add(20325984); 
+    var addr_SetTimeScale = gameAssembly.add(51447216);
     
     // Create callable native function
     originalSetTimeScale = new NativeFunction(addr_SetTimeScale, 'void', ['float', 'pointer']);
