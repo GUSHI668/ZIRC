@@ -16,10 +16,10 @@ from gflzirc import (
 CONFIG = {
     "USER_UID": "_InputYourID_",
     "SIGN_KEY": DEFAULT_SIGN,
-    "BASE_URL": SERVERS["M4A1"],
+    "BASE_URL": SERVERS["EN"],
     "PROXY_PORT": 8080,
     # 1:探查点数，2:四项
-    "TICKET_TYPE": 2,
+    "TICKET_TYPE": 0,
     "USER_DEVICE": "705e6cc2f7bcc635accfcbac7df9bf86cd6f0e05"
 }
 

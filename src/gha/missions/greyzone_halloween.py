@@ -64,7 +64,7 @@ SPAWN_MAP = {
 class GreyZoneHalloweenMission(BaseMission):
     def __init__(self, agent):
         super().__init__(agent)
-        self.ticket_type = int(self.config.get("TICKET_TYPE", 2))
+        self.ticket_type = int(self.config.get("TICKET_TYPE", 0))
         self.user_device = self.agent.user_device
         self.total_points = 0
         self.current_mission_id = 580001
