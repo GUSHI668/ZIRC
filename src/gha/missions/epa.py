@@ -61,9 +61,9 @@ class BaseEPAMission(BaseMission):
                 sys.exit(1)
                 
             drops_to_retire.extend(drops)
-            #if all_maxed:
-            #    print(f"[!] WARNING: Team Index {idx} is already fully MAX level. Will be excluded.")
-            #    maxed_teams.append(idx)
+            if all_maxed:
+                print(f"[!] WARNING: Team Index {idx} is already fully MAX level. Will be excluded.")
+                maxed_teams.append(idx)
                 
             time.sleep(2)
             
