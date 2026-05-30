@@ -220,7 +220,7 @@ class BaseEPAMission(BaseMission):
             
             # Check EXP (Logical AND for the whole echelon)
             if self._check_battle_exp(battle_resp, team_config, next_spot):
-                all_maxed_flag = True
+                all_maxed_flag = False
 
             curr_spot = next_spot
             time.sleep(0.5)
